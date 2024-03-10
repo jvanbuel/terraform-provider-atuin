@@ -1,10 +1,11 @@
 package provider
 
 import (
+	atuin "atuin-tf/internal/atuin_client"
 	"context"
+	"net/http"
 	"os"
 
-	"github.com/hashicorp-demoapp/hashicups-client-go"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
@@ -16,62 +17,53 @@ import (
 
 // Ensure the implementation satisfies the expected interfaces.
 var (
-	_ provider.Provider = &hashicupsProvider{}
+	_ provider.Provider = &atuinProvider{}
 )
 
 // New is a helper function to simplify provider server and testing implementation.
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
-		return &hashicupsProvider{
+		return &atuinProvider{
 			version: version,
 		}
 	}
 }
 
-// hashicupsProvider is the provider implementation.
-type hashicupsProvider struct {
+// atuinProvider is the provider implementation.
+type atuinProvider struct {
 	// version is set to the provider version on release, "dev" when the
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
 	version string
 }
 
-// hashicupsProviderModel maps provider schema data to a Go type.
-type hashicupsProviderModel struct {
-	Host     types.String `tfsdk:"host"`
-	Username types.String `tfsdk:"username"`
-	Password types.String `tfsdk:"password"`
+// atuinProviderModel maps provider schema data to a Go type.
+type atuinProviderModel struct {
+	Host types.String `tfsdk:"host"`
 }
 
 // Metadata returns the provider type name.
-func (p *hashicupsProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
-	resp.TypeName = "hashicups"
+func (p *atuinProvider) Metadata(_ context.Context, _ provider.MetadataRequest, resp *provider.MetadataResponse) {
+	resp.TypeName = "atuin"
 	resp.Version = p.version
 }
 
 // Schema defines the provider-level schema for configuration data.
-func (p *hashicupsProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
+func (p *atuinProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	resp.Schema = schema.Schema{
 		Attributes: map[string]schema.Attribute{
 			"host": schema.StringAttribute{
 				Optional: true,
 			},
-			"username": schema.StringAttribute{
-				Optional: true,
-			},
-			"password": schema.StringAttribute{
-				Optional:  true,
-				Sensitive: true,
-			},
 		},
 	}
 }
 
-func (p *hashicupsProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
-	tflog.Info(ctx, "Configuring HashiCups client")
+func (p *atuinProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+	tflog.Info(ctx, "Configuring Atuin client")
 
 	// Retrieve provider data from configuration
-	var config hashicupsProviderModel
+	var config atuinProviderModel
 	diags := req.Config.Get(ctx, &config)
 	resp.Diagnostics.Append(diags...)
 	if resp.Diagnostics.HasError() {
@@ -84,27 +76,9 @@ func (p *hashicupsProvider) Configure(ctx context.Context, req provider.Configur
 	if config.Host.IsUnknown() {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("host"),
-			"Unknown HashiCups API Host",
-			"The provider cannot create the HashiCups API client as there is an unknown configuration value for the HashiCups API host. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the HASHICUPS_HOST environment variable.",
-		)
-	}
-
-	if config.Username.IsUnknown() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("username"),
-			"Unknown HashiCups API Username",
-			"The provider cannot create the HashiCups API client as there is an unknown configuration value for the HashiCups API username. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the HASHICUPS_USERNAME environment variable.",
-		)
-	}
-
-	if config.Password.IsUnknown() {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("password"),
-			"Unknown HashiCups API Password",
-			"The provider cannot create the HashiCups API client as there is an unknown configuration value for the HashiCups API password. "+
-				"Either target apply the source of the value first, set the value statically in the configuration, or use the HASHICUPS_PASSWORD environment variable.",
+			"Unknown Atuin API Host",
+			"The provider cannot create the Atuin API client as there is an unknown configuration value for the Atuin API host. "+
+				"Either target apply the source of the value first, set the value statically in the configuration, or use the ATUIN_HOST environment variable.",
 		)
 	}
 
@@ -115,20 +89,14 @@ func (p *hashicupsProvider) Configure(ctx context.Context, req provider.Configur
 	// Default values to environment variables, but override
 	// with Terraform configuration value if set.
 
-	host := os.Getenv("HASHICUPS_HOST")
-	username := os.Getenv("HASHICUPS_USERNAME")
-	password := os.Getenv("HASHICUPS_PASSWORD")
+	host := os.Getenv("ATUIN_HOST")
+
+	if host == "" {
+		host = atuin.API_ENDPOINT
+	}
 
 	if !config.Host.IsNull() {
 		host = config.Host.ValueString()
-	}
-
-	if !config.Username.IsNull() {
-		username = config.Username.ValueString()
-	}
-
-	if !config.Password.IsNull() {
-		password = config.Password.ValueString()
 	}
 
 	// If any of the expected configurations are missing, return
@@ -137,29 +105,9 @@ func (p *hashicupsProvider) Configure(ctx context.Context, req provider.Configur
 	if host == "" {
 		resp.Diagnostics.AddAttributeError(
 			path.Root("host"),
-			"Missing HashiCups API Host",
-			"The provider cannot create the HashiCups API client as there is a missing or empty value for the HashiCups API host. "+
-				"Set the host value in the configuration or use the HASHICUPS_HOST environment variable. "+
-				"If either is already set, ensure the value is not empty.",
-		)
-	}
-
-	if username == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("username"),
-			"Missing HashiCups API Username",
-			"The provider cannot create the HashiCups API client as there is a missing or empty value for the HashiCups API username. "+
-				"Set the username value in the configuration or use the HASHICUPS_USERNAME environment variable. "+
-				"If either is already set, ensure the value is not empty.",
-		)
-	}
-
-	if password == "" {
-		resp.Diagnostics.AddAttributeError(
-			path.Root("password"),
-			"Missing HashiCups API Password",
-			"The provider cannot create the HashiCups API client as there is a missing or empty value for the HashiCups API password. "+
-				"Set the password value in the configuration or use the HASHICUPS_PASSWORD environment variable. "+
+			"Missing Atuin API Host",
+			"The provider cannot create the Atuin API client as there is a missing or empty value for the atuin API host. "+
+				"Set the host value in the configuration or use the atuin_HOST environment variable. "+
 				"If either is already set, ensure the value is not empty.",
 		)
 	}
@@ -168,41 +116,28 @@ func (p *hashicupsProvider) Configure(ctx context.Context, req provider.Configur
 		return
 	}
 
-	ctx = tflog.SetField(ctx, "hashicups_host", host)
-	ctx = tflog.SetField(ctx, "hashicups_username", username)
-	ctx = tflog.SetField(ctx, "hashicups_password", password)
-	ctx = tflog.MaskFieldValuesWithFieldKeys(ctx, "hashicups_password")
+	ctx = tflog.SetField(ctx, "atuin_host", host)
 
-	tflog.Debug(ctx, "Creating HashiCups client")
+	tflog.Debug(ctx, "Creating atuin client")
 
-	// Create a new HashiCups client using the configuration values
-	client, err := hashicups.NewClient(&host, &username, &password)
-	if err != nil {
-		resp.Diagnostics.AddError(
-			"Unable to Create HashiCups API Client",
-			"An unexpected error occurred when creating the HashiCups API client. "+
-				"If the error is not clear, please contact the provider developers.\n\n"+
-				"HashiCups Client Error: "+err.Error(),
-		)
-		return
-	}
+	// Create a new atuin client using the configuration values
+	client := http.Client{}
 
-	// Make the HashiCups client available during DataSource and Resource
+	// Make the atuin client available during DataSource and Resource
 	// type Configure methods.
-	resp.DataSourceData = client
 	resp.ResourceData = client
 
-	tflog.Info(ctx, "Configured HashiCups client", map[string]any{"success": true})
-}
-
-// DataSources defines the data sources implemented in the provider.
-func (p *hashicupsProvider) DataSources(_ context.Context) []func() datasource.DataSource {
-	return []func() datasource.DataSource{
-		NewCoffeesDataSource,
-	}
+	tflog.Info(ctx, "Configured Atuin client", map[string]any{"success": true})
 }
 
 // Resources defines the resources implemented in the provider.
-func (p *hashicupsProvider) Resources(_ context.Context) []func() resource.Resource {
+func (p *atuinProvider) Resources(_ context.Context) []func() resource.Resource {
+	return []func() resource.Resource{
+		NewAtuinUser,
+	}
+}
+
+// DataSources defines the data sources implemented in the provider.
+func (p *atuinProvider) DataSources(_ context.Context) []func() datasource.DataSource {
 	return nil
 }

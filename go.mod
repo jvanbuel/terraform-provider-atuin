@@ -1,4 +1,4 @@
-module terraform-provider-hashicups-pf
+module atuin-tf
 
 go 1.19
 
