@@ -169,13 +169,11 @@ func (r *AtuinUser) Delete(ctx context.Context, req resource.DeleteRequest, resp
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete example, got error: %s", err))
-	//     return
-	// }
+	err := r.client.DeleteUser(data.Username.String(), data.Password.String())
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete Atuin user, got error: %s", err))
+		return
+	}
 }
 
 func (r *AtuinUser) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
