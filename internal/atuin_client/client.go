@@ -52,6 +52,12 @@ func (c *AtuinClient) CreateUser(username, password, email string) (string, erro
 		return "", err
 	}
 
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("error creating user: %s", resp.Status)
+	}
+
+	defer resp.Body.Close()
+
 	var s Session
 	err = json.NewDecoder(resp.Body).Decode(&s)
 	if err != nil {

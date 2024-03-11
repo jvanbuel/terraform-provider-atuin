@@ -94,7 +94,9 @@ func (r *AtuinUser) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	_, err := r.client.CreateUser(data.Username.String(), data.Password.String(), data.Email.String())
+	tflog.Info(ctx, data.Username.String())
+
+	_, err := r.client.CreateUser(data.Username.ValueString(), data.Password.ValueString(), data.Email.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create Atuin user, got error: %s", err))
 		return

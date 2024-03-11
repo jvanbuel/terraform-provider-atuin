@@ -12,7 +12,7 @@ provider "atuin" {
 
 
 resource "atuin_user" "test" {
-  username = "test123456789"
-  email    = "weifjweijw@gmail.com"
-  password = "password1234"
+  username = "humfrey123"
+  email    = "testing12345@yahoo.com"
+  password = "password123"
 }
