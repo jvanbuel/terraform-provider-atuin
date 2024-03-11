@@ -94,17 +94,14 @@ func (r *AtuinUser) Create(ctx context.Context, req resource.CreateRequest, resp
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create example, got error: %s", err))
-	//     return
-	// }
+	_, err := r.client.CreateUser(data.Username.String(), data.Password.String(), data.Email.String())
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create Atuin user, got error: %s", err))
+		return
+	}
 
-	// For the purposes of this example code, hardcoding a response value to
-	// save into the Terraform state.
-	key, err := r.client.GetEncryptionKey()
+	// Generate encryption key and add to state
+	key, err := atuin.GenerateEncryptionKey()
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read encryption key, got error: %s", err))
 	}
@@ -112,7 +109,7 @@ func (r *AtuinUser) Create(ctx context.Context, req resource.CreateRequest, resp
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
-	tflog.Trace(ctx, "created a resource")
+	tflog.Trace(ctx, "created an Atuin user")
 
 	// Save data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
