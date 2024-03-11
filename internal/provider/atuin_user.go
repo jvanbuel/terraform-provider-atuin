@@ -1,9 +1,9 @@
 package provider
 
 import (
+	atuin "atuin-tf/internal/atuin_client"
 	"context"
 	"fmt"
-	"net/http"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -24,7 +24,7 @@ func NewAtuinUser() resource.Resource {
 
 // AtuinUser defines the resource implementation.
 type AtuinUser struct {
-	client *http.Client
+	client *atuin.AtuinClient
 }
 
 // AtuinUserModel describes the resource data model.
@@ -70,7 +70,7 @@ func (r *AtuinUser) Configure(ctx context.Context, req resource.ConfigureRequest
 		return
 	}
 
-	client, ok := req.ProviderData.(*http.Client)
+	client, ok := req.ProviderData.(*atuin.AtuinClient)
 
 	if !ok {
 		resp.Diagnostics.AddError(
@@ -104,7 +104,11 @@ func (r *AtuinUser) Create(ctx context.Context, req resource.CreateRequest, resp
 
 	// For the purposes of this example code, hardcoding a response value to
 	// save into the Terraform state.
-	data.Username = types.StringValue("example-user")
+	key, err := r.client.GetEncryptionKey()
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read encryption key, got error: %s", err))
+	}
+	data.Key = types.StringValue(key)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log

@@ -3,7 +3,6 @@ package provider
 import (
 	atuin "atuin-tf/internal/atuin_client"
 	"context"
-	"net/http"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -86,7 +85,7 @@ func (p *atuinProvider) Configure(ctx context.Context, req provider.ConfigureReq
 		return
 	}
 
-	// Default values to environment variables, but override
+	// Default values to environment variables, or public Atuin endpoint, but override
 	// with Terraform configuration value if set.
 
 	host := os.Getenv("ATUIN_HOST")
@@ -121,7 +120,7 @@ func (p *atuinProvider) Configure(ctx context.Context, req provider.ConfigureReq
 	tflog.Debug(ctx, "Creating atuin client")
 
 	// Create a new atuin client using the configuration values
-	client := http.Client{}
+	client := atuin.NewAtuinClient(host)
 
 	// Make the atuin client available during DataSource and Resource
 	// type Configure methods.
