@@ -16,3 +16,11 @@ func TestGenerateKey(t *testing.T) {
 		t.Errorf("Cannot decode key as b64: %s", key)
 	}
 }
+
+func TestCreateUser(t *testing.T) {
+	client := NewAtuinClient(API_ENDPOINT)
+	_, err := client.CreateUser("testABDCDEFghijkl", "password", "testABDCDEFghijkl@yahoo.com")
+	if err != nil {
+		t.Errorf("Error creating user: %s", err)
+	}
+}

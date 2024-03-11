@@ -1,4 +1,4 @@
-module atuin-tf
+module terraform-provider-atuin
 
 go 1.19
 

@@ -1,10 +1,10 @@
 package main
 
 import (
-	"atuin-tf/internal/provider"
 	"context"
 	"flag"
 	"log"
+	"terraform-provider-atuin/internal/provider"
 
 	"github.com/hashicorp/terraform-plugin-framework/providerserver"
 )

@@ -5,6 +5,7 @@ import (
 	"crypto/rand"
 	b64 "encoding/base64"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -27,17 +28,26 @@ type Session struct {
 	Session string `json:"session"`
 }
 
+func (c *AtuinClient) Do(req *http.Request) (*http.Response, error) {
+	req.Header.Add("Content-Type", "application/json")
+	return c.client.Do(req)
+}
+
 func (c *AtuinClient) CreateUser(username, password, email string) (string, error) {
 	values := map[string]string{"username": username, "password": password, "email": email}
 
 	jsonValue, _ := json.Marshal(values)
+
+	fmt.Printf("jsonValue: %v", jsonValue)
 
 	request, err := http.NewRequest("POST", c.host+"/register", bytes.NewBuffer(jsonValue))
 	if err != nil {
 		return "", err
 	}
 
-	resp, err := c.client.Do(request)
+	resp, err := c.Do(request)
+
+	fmt.Printf("resp: %v", resp)
 	if err != nil {
 		return "", err
 	}
@@ -68,7 +78,7 @@ func (c *AtuinClient) DeleteUser(username, password string) error {
 
 	request.Header.Set("Authorization", "Token "+sessionToken)
 
-	_, err = c.client.Do(request)
+	_, err = c.Do(request)
 	if err != nil {
 		return err
 	}
@@ -86,7 +96,7 @@ func (c *AtuinClient) Login(username, password string) (string, error) {
 		return "", err
 	}
 
-	resp, err := c.client.Do(request)
+	resp, err := c.Do(request)
 	if err != nil {
 		return "", err
 	}

@@ -1,9 +1,9 @@
 package provider
 
 import (
-	atuin "atuin-tf/internal/atuin_client"
 	"context"
 	"fmt"
+	atuin "terraform-provider-atuin/internal/atuin_client"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
@@ -47,15 +47,15 @@ func (r *AtuinUser) Schema(ctx context.Context, req resource.SchemaRequest, resp
 		Attributes: map[string]schema.Attribute{
 			"username": schema.StringAttribute{
 				MarkdownDescription: "Username of Atuin user",
-				Optional:            false,
+				Required:            true,
 			},
 			"password": schema.StringAttribute{
 				MarkdownDescription: "Password of Atuin user",
-				Optional:            false,
+				Required:            true,
 			},
 			"email": schema.StringAttribute{
 				MarkdownDescription: "Email of Atuin user",
-				Optional:            false,
+				Required:            true,
 			},
 			"key": schema.StringAttribute{
 				Computed: true,
@@ -125,8 +125,7 @@ func (r *AtuinUser) Read(ctx context.Context, req resource.ReadRequest, resp *re
 		return
 	}
 
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
+	// Possible to verify user exists
 	// httpResp, err := r.client.Do(httpReq)
 	// if err != nil {
 	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))

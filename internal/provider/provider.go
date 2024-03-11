@@ -1,9 +1,9 @@
 package provider
 
 import (
-	atuin "atuin-tf/internal/atuin_client"
 	"context"
 	"os"
+	atuin "terraform-provider-atuin/internal/atuin_client"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/path"
