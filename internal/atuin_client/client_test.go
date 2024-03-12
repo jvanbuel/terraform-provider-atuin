@@ -17,11 +17,17 @@ func TestGenerateKey(t *testing.T) {
 	}
 }
 
-func TestCreateUser(t *testing.T) {
-	username := "randomusername123456"
+func TestCreateAndDeleteUser(t *testing.T) {
+	username := "randomusernameABCDEF"
+	password := "password"
 	client := NewAtuinClient(API_ENDPOINT)
-	_, err := client.CreateUser(username, "password", username+"@example.com")
+	_, err := client.CreateUser(username, password, username+"@example.com")
 	if err != nil {
 		t.Errorf("Error creating user: %s", err)
+	}
+
+	err = client.DeleteUser(username, password)
+	if err != nil {
+		t.Errorf("Error deleting user: %s", err)
 	}
 }

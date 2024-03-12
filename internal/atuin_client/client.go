@@ -38,16 +38,12 @@ func (c *AtuinClient) CreateUser(username, password, email string) (string, erro
 
 	jsonValue, _ := json.Marshal(values)
 
-	fmt.Printf("jsonValue: %v", jsonValue)
-
 	request, err := http.NewRequest("POST", c.host+"/register", bytes.NewBuffer(jsonValue))
 	if err != nil {
 		return "", err
 	}
 
 	resp, err := c.Do(request)
-
-	fmt.Printf("resp: %v", resp)
 	if err != nil {
 		return "", err
 	}
@@ -84,9 +80,13 @@ func (c *AtuinClient) DeleteUser(username, password string) error {
 
 	request.Header.Set("Authorization", "Token "+sessionToken)
 
-	_, err = c.Do(request)
+	resp, err := c.Do(request)
 	if err != nil {
 		return err
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error creating user: %s", resp.Status)
 	}
 
 	return nil

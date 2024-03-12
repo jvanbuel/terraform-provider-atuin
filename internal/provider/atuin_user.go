@@ -96,7 +96,7 @@ func (r *AtuinUser) Create(ctx context.Context, req resource.CreateRequest, resp
 
 	tflog.Info(ctx, data.Username.String())
 
-	_, err := r.client.CreateUser(data.Username.ValueString(), data.Password.ValueString(), data.Email.ValueString())
+	_, err := r.client.CreateUser(data.Username.ValueString(), data.Password.ValueString(), data.Email.String())
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create Atuin user, got error: %s", err))
 		return
@@ -170,7 +170,7 @@ func (r *AtuinUser) Delete(ctx context.Context, req resource.DeleteRequest, resp
 		return
 	}
 
-	err := r.client.DeleteUser(data.Username.String(), data.Password.String())
+	err := r.client.DeleteUser(data.Username.ValueString(), data.Password.ValueString())
 	if err != nil {
 		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to delete Atuin user, got error: %s", err))
 		return
