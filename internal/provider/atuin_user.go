@@ -52,13 +52,15 @@ func (r *AtuinUser) Schema(ctx context.Context, req resource.SchemaRequest, resp
 			"password": schema.StringAttribute{
 				MarkdownDescription: "Password of Atuin user",
 				Required:            true,
+				Sensitive:           true,
 			},
 			"email": schema.StringAttribute{
 				MarkdownDescription: "Email of Atuin user",
 				Required:            true,
 			},
 			"key": schema.StringAttribute{
-				Computed: true,
+				Computed:  true,
+				Sensitive: true,
 			},
 		},
 	}
