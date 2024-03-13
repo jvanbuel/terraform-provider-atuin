@@ -6,5 +6,5 @@ resource "atuin_user" "test" {
 
 output "encryption_key" {
   sensitive = true
-  value     = atuin_user.test.key
+  value     = atuin_user.test.base64_key
 }

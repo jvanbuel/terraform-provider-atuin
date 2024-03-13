@@ -21,7 +21,7 @@ resource "atuin_user" "test" {
 
 output "encryption_key" {
   sensitive = true
-  value     = atuin_user.test.key
+  value     = atuin_user.test.base64_key
 }
 ```
 
@@ -39,4 +39,10 @@ output "encryption_key" {
 - `base64_key` (String, Sensitive)
 - `bip39_key` (String, Sensitive)
 
+## Import
 
+Import is supported using the following syntax:
+
+```shell
+terraform import "username,password,key"
+```
