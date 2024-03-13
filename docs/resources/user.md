@@ -36,6 +36,7 @@ output "encryption_key" {
 
 ### Read-Only
 
-- `key` (String, Sensitive)
+- `base64_key` (String, Sensitive)
+- `bip39_key` (String, Sensitive)
 
 
