@@ -7,47 +7,42 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 )
 
-func TestAccExampleResource(t *testing.T) {
+func TestAccExampleAtuinUserResource(t *testing.T) {
 	resource.Test(t, resource.TestCase{
 		PreCheck:                 func() { testAccPreCheck(t) },
 		ProtoV6ProviderFactories: testAccProtoV6ProviderFactories,
 		Steps: []resource.TestStep{
 			// Create and Read testing
 			{
-				Config: testAccExampleResourceConfig("one"),
+				Config: testAccExampleAtuinUserResourceConfig("testUser523018", "pa$$word", "test1234@yahoo.com"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("scaffolding_example.test", "configurable_attribute", "one"),
-					resource.TestCheckResourceAttr("scaffolding_example.test", "defaulted", "example value when not configured"),
-					resource.TestCheckResourceAttr("scaffolding_example.test", "id", "example-id"),
+					resource.TestCheckResourceAttr("atuin_user.test", "password", "pa$$word"),
 				),
 			},
 			// ImportState testing
 			{
-				ResourceName:      "scaffolding_example.test",
-				ImportState:       true,
-				ImportStateVerify: true,
-				// This is not normally necessary, but is here because this
-				// example code does not have an actual upstream service.
-				// Once the Read method is able to refresh information from
-				// the upstream service, this can be removed.
-				ImportStateVerifyIgnore: []string{"configurable_attribute", "defaulted"},
+				ResourceName:  "atuin_user.test",
+				ImportState:   true,
+				ImportStateId: "testUser523018,pa$$word,indoor dish desk flag debris potato excuse depart ticket judge file exit",
 			},
 			// Update and Read testing
-			{
-				Config: testAccExampleResourceConfig("two"),
-				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("scaffolding_example.test", "configurable_attribute", "two"),
-				),
-			},
+			// {
+			// 	Config: testAccExampleAtuinUserResourceConfig("testUser523018", "pa$$word2", "test1234$yahoo.com"),
+			// 	Check: resource.ComposeAggregateTestCheckFunc(
+			// 		resource.TestCheckResourceAttr("atuin_user.test", "password", "pa$$word2"),
+			// 	),
+			// },
 			// Delete testing automatically occurs in TestCase
 		},
 	})
 }
 
-func testAccExampleResourceConfig(configurableAttribute string) string {
+func testAccExampleAtuinUserResourceConfig(username, password, email string) string {
 	return fmt.Sprintf(`
-resource "scaffolding_example" "test" {
-  configurable_attribute = %[1]q
+resource "atuin_user" "test" {
+  username = %[1]q
+  password = %[2]q
+  email    = %[3]q
 }
-`, configurableAttribute)
+`, username, password, email)
 }
