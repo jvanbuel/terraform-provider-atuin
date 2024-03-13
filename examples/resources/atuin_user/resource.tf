@@ -1,7 +1,7 @@
 resource "atuin_user" "test" {
-  username = "humfrey123"
-  email    = "testing12345@yahoo.com"
-  password = "password123"
+  username = "twoflower"
+  email    = "twoflower@discworld.co.uk"
+  password = "swordfish"
 }
 
 output "encryption_key" {
