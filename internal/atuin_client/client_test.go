@@ -3,6 +3,9 @@ package atuin
 import (
 	b64 "encoding/base64"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/tyler-smith/go-bip39"
 )
 
 func TestGenerateKey(t *testing.T) {
@@ -30,4 +33,25 @@ func TestCreateAndDeleteUser(t *testing.T) {
 	if err != nil {
 		t.Errorf("Error deleting user: %s", err)
 	}
+}
+
+func TestConvertKeyToBip39(t *testing.T) {
+	randomKey, err := GenerateEncryptionKey()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bip39Key, err := ConvertEncryptionKeyToBip39(randomKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	decoded, err := bip39.EntropyFromMnemonic(bip39Key)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	decodedb64 := b64.StdEncoding.EncodeToString(decoded)
+
+	assert.Equal(t, decodedb64, randomKey)
 }

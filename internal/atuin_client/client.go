@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/tyler-smith/go-bip39"
 )
 
 const API_ENDPOINT = "https://api.atuin.sh"
@@ -131,4 +133,13 @@ func GenerateEncryptionKey() (string, error) {
 
 	b64Key := b64.StdEncoding.EncodeToString(key)
 	return b64Key, nil
+}
+
+func ConvertEncryptionKeyToBip39(key string) (string, error) {
+	decodedKey, err := b64.StdEncoding.DecodeString(key)
+	if err != nil {
+		return "", err
+	}
+
+	return bip39.NewMnemonic(decodedKey)
 }
