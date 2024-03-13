@@ -21,7 +21,7 @@ func TestGenerateKey(t *testing.T) {
 }
 
 func TestCreateAndDeleteUser(t *testing.T) {
-	username := "randomusernameABCDEF"
+	username := "aW0nd3rfulUs3rname"
 	password := "password"
 	client := NewAtuinClient(API_ENDPOINT)
 	_, err := client.CreateUser(username, password, username+"@example.com")
@@ -54,4 +54,12 @@ func TestConvertKeyToBip39(t *testing.T) {
 	decodedb64 := b64.StdEncoding.EncodeToString(decoded)
 
 	assert.Equal(t, decodedb64, randomKey)
+}
+
+func TestIsValidBip39(t *testing.T) {
+	valid := "indoor dish desk flag debris potato excuse depart ticket judge file exit"
+	invalid := "er staat een paard in de gang"
+
+	assert.True(t, IsValidBip39(valid))
+	assert.False(t, IsValidBip39(invalid))
 }

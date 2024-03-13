@@ -2,7 +2,9 @@ package provider
 
 import (
 	"context"
+	"encoding/base64"
 	"fmt"
+	"strings"
 	atuin "terraform-provider-atuin/internal/atuin_client"
 
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -10,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
+	"github.com/tyler-smith/go-bip39"
 )
 
 // Ensure provider defined types fully satisfy framework interfaces.
@@ -29,10 +32,11 @@ type AtuinUser struct {
 
 // AtuinUserModel describes the resource data model.
 type AtuinUserModel struct {
-	Username types.String `tfsdk:"username"`
-	Password types.String `tfsdk:"password"`
-	Email    types.String `tfsdk:"email"`
-	Key      types.String `tfsdk:"key"`
+	Username  types.String `tfsdk:"username"`
+	Password  types.String `tfsdk:"password"`
+	Email     types.String `tfsdk:"email"`
+	Base64Key types.String `tfsdk:"base64_key"`
+	Bip39Key  types.String `tfsdk:"bip39_key"`
 }
 
 func (r *AtuinUser) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -58,7 +62,11 @@ func (r *AtuinUser) Schema(ctx context.Context, req resource.SchemaRequest, resp
 				MarkdownDescription: "Email of Atuin user",
 				Required:            true,
 			},
-			"key": schema.StringAttribute{
+			"base64_key": schema.StringAttribute{
+				Computed:  true,
+				Sensitive: true,
+			},
+			"bip39_key": schema.StringAttribute{
 				Computed:  true,
 				Sensitive: true,
 			},
@@ -107,9 +115,15 @@ func (r *AtuinUser) Create(ctx context.Context, req resource.CreateRequest, resp
 	// Generate encryption key and add to state
 	key, err := atuin.GenerateEncryptionKey()
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read encryption key, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to create encryption key, got error: %s", err))
 	}
-	data.Key = types.StringValue(key)
+	data.Base64Key = types.StringValue(key)
+
+	bip39Key, err := atuin.ConvertEncryptionKeyToBip39(data.Base64Key.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to convert encryption key to bip39, got error: %s", err))
+	}
+	data.Bip39Key = types.StringValue(bip39Key)
 
 	// Write logs using the tflog package
 	// Documentation: https://terraform.io/plugin/log
@@ -125,16 +139,14 @@ func (r *AtuinUser) Read(ctx context.Context, req resource.ReadRequest, resp *re
 	// Read Terraform prior state data into the model
 	resp.Diagnostics.Append(req.State.Get(ctx, &data)...)
 
+	_, err := r.client.Login(data.Username.ValueString(), data.Password.ValueString())
+	if err != nil {
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to login user, got error: %s", err))
+	}
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	// Possible to verify user exists
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to read example, got error: %s", err))
-	//     return
-	// }
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -149,14 +161,6 @@ func (r *AtuinUser) Update(ctx context.Context, req resource.UpdateRequest, resp
 	if resp.Diagnostics.HasError() {
 		return
 	}
-
-	// If applicable, this is a great opportunity to initialize any necessary
-	// provider client data and make a call using it.
-	// httpResp, err := r.client.Do(httpReq)
-	// if err != nil {
-	//     resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update example, got error: %s", err))
-	//     return
-	// }
 
 	// Save updated data into Terraform state
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -180,5 +184,31 @@ func (r *AtuinUser) Delete(ctx context.Context, req resource.DeleteRequest, resp
 }
 
 func (r *AtuinUser) ImportState(ctx context.Context, req resource.ImportStateRequest, resp *resource.ImportStateResponse) {
-	resource.ImportStatePassthroughID(ctx, path.Root("id"), req, resp)
+	idParts := strings.Split(req.ID, ",")
+
+	if len(idParts) != 3 || idParts[0] == "" || idParts[1] == "" || idParts[2] == "" {
+		resp.Diagnostics.AddError(
+			"Unexpected Import Identifier",
+			fmt.Sprintf("Expected import identifier with format: attr_one,attr_two. Got: %q", req.ID),
+		)
+		return
+	}
+
+	var b64Key, bip39Key string
+	if atuin.IsValidBip39(idParts[3]) {
+		bip39Key = idParts[3]
+		bip39Bytes, err := bip39.EntropyFromMnemonic(bip39Key)
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to decode bip39 key, got error: %s", err))
+		}
+		b64Key = base64.StdEncoding.EncodeToString(bip39Bytes)
+	} else {
+		b64Key = idParts[3]
+		bip39Key, _ = atuin.ConvertEncryptionKeyToBip39(b64Key)
+	}
+
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("username"), idParts[0])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("password"), idParts[1])...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("base64_key"), b64Key)...)
+	resp.Diagnostics.Append(resp.State.SetAttribute(ctx, path.Root("bip39_key"), bip39Key)...)
 }

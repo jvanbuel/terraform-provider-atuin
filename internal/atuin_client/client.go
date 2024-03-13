@@ -143,3 +143,8 @@ func ConvertEncryptionKeyToBip39(key string) (string, error) {
 
 	return bip39.NewMnemonic(decodedKey)
 }
+
+func IsValidBip39(key string) bool {
+	_, err := bip39.EntropyFromMnemonic(key)
+	return err == nil
+}
