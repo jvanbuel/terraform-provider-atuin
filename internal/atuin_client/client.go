@@ -6,7 +6,6 @@ import (
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 
 	"github.com/tyler-smith/go-bip39"
@@ -30,6 +29,10 @@ type Session struct {
 	Session string `json:"session"`
 }
 
+type ErrorMessage struct {
+	Reason string `json:"reason"`
+}
+
 func (c *AtuinClient) Do(req *http.Request) (*http.Response, error) {
 	req.Header.Add("Content-Type", "application/json")
 	return c.client.Do(req)
@@ -51,7 +54,15 @@ func (c *AtuinClient) CreateUser(username, password, email string) (string, erro
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("error creating user: %s", resp.Status)
+		defer resp.Body.Close()
+
+		var e ErrorMessage
+		err = json.NewDecoder(resp.Body).Decode(&e)
+		if err != nil {
+			return "", fmt.Errorf("unexpected error: %v", resp.Body)
+		}
+
+		return "", fmt.Errorf(e.Reason)
 	}
 
 	defer resp.Body.Close()
@@ -109,14 +120,21 @@ func (c *AtuinClient) Login(username, password string) (string, error) {
 		return "", err
 	}
 
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return "", err
+	if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
+
+		var e ErrorMessage
+		err = json.NewDecoder(resp.Body).Decode(&e)
+		if err != nil {
+			return "", fmt.Errorf("unexpected error: %v", resp.Body)
+		}
+
+		return "", fmt.Errorf(e.Reason)
 	}
 
+	defer resp.Body.Close()
 	var s Session
-	err = json.Unmarshal(body, &s)
+	err = json.NewDecoder(resp.Body).Decode(&s)
 	if err != nil {
 		return "", err
 	}

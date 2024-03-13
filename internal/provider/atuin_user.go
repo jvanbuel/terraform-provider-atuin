@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	"github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 	"github.com/tyler-smith/go-bip39"
@@ -52,6 +54,7 @@ func (r *AtuinUser) Schema(ctx context.Context, req resource.SchemaRequest, resp
 			"username": schema.StringAttribute{
 				MarkdownDescription: "Username of Atuin user",
 				Required:            true,
+				PlanModifiers:       []planmodifier.String{stringplanmodifier.RequiresReplace()},
 			},
 			"password": schema.StringAttribute{
 				MarkdownDescription: "Password of Atuin user",
@@ -141,7 +144,7 @@ func (r *AtuinUser) Read(ctx context.Context, req resource.ReadRequest, resp *re
 
 	_, err := r.client.Login(data.Username.ValueString(), data.Password.ValueString())
 	if err != nil {
-		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to login user, got error: %s", err))
+		resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to login user: %s", err))
 	}
 
 	if resp.Diagnostics.HasError() {
