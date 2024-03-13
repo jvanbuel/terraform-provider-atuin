@@ -195,15 +195,15 @@ func (r *AtuinUser) ImportState(ctx context.Context, req resource.ImportStateReq
 	}
 
 	var b64Key, bip39Key string
-	if atuin.IsValidBip39(idParts[3]) {
-		bip39Key = idParts[3]
+	if atuin.IsValidBip39(idParts[2]) {
+		bip39Key = idParts[2]
 		bip39Bytes, err := bip39.EntropyFromMnemonic(bip39Key)
 		if err != nil {
 			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to decode bip39 key, got error: %s", err))
 		}
 		b64Key = base64.StdEncoding.EncodeToString(bip39Bytes)
 	} else {
-		b64Key = idParts[3]
+		b64Key = idParts[2]
 		bip39Key, _ = atuin.ConvertEncryptionKeyToBip39(b64Key)
 	}
 

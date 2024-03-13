@@ -7,3 +7,6 @@ testacc:
 
 docs:
 	tfplugindocs generate --provider-name terraform-provider-atuin
+
+install:
+	go install .
