@@ -165,7 +165,20 @@ func (r *AtuinUser) Update(ctx context.Context, req resource.UpdateRequest, resp
 		return
 	}
 
-	// Save updated data into Terraform state
+	var oldData *AtuinUserModel
+	resp.Diagnostics.Append(req.State.Get(ctx, &oldData)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	if data.Password.ValueString() != oldData.Password.ValueString() {
+		err := r.client.UpdatePassword(data.Username.ValueString(), oldData.Password.ValueString(), data.Password.ValueString())
+		if err != nil {
+			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update password, got error: %s", err))
+		}
+	}
+
+	// Save updated data into Terraform state. It seems email is not really used yet, so we don't need to do any calls to update it.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
