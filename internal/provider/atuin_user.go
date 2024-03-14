@@ -68,10 +68,16 @@ func (r *AtuinUser) Schema(ctx context.Context, req resource.SchemaRequest, resp
 			"base64_key": schema.StringAttribute{
 				Computed:  true,
 				Sensitive: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 			"bip39_key": schema.StringAttribute{
 				Computed:  true,
 				Sensitive: true,
+				PlanModifiers: []planmodifier.String{
+					stringplanmodifier.UseStateForUnknown(),
+				},
 			},
 		},
 	}
@@ -177,6 +183,9 @@ func (r *AtuinUser) Update(ctx context.Context, req resource.UpdateRequest, resp
 			resp.Diagnostics.AddError("Client Error", fmt.Sprintf("Unable to update password, got error: %s", err))
 		}
 	}
+
+	data.Base64Key = oldData.Base64Key
+	data.Bip39Key = oldData.Bip39Key
 
 	// Save updated data into Terraform state. It seems email is not really used yet, so we don't need to do any calls to update it.
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
