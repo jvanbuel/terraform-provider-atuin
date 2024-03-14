@@ -81,6 +81,6 @@ jobs:
         working-directory: docker-compose
       - env:
           TF_ACC: "1"
-          ATUIN_HOST: "atuin:8888"
+          ATUIN_HOST: "http://atuin:8888"
         run: go test -v -cover ./internal/provider/
         timeout-minutes: 10
