@@ -38,6 +38,21 @@ func TestCreateAndDeleteUser(t *testing.T) {
 	}
 }
 
+func TestUpdatePassword(t *testing.T) {
+	username := "rincewind"
+	password := "swordfish"
+	newPassword := "newpassword"
+	client := NewAtuinClient(TEST_API_ENDPOINT)
+
+	client.CreateUser(username, password, username+"@example.com")
+	err := client.UpdatePassword(username, password, newPassword)
+	if err != nil {
+		t.Errorf("Error updating password: %s", err)
+	}
+
+	client.DeleteUser(username, newPassword)
+}
+
 func TestConvertKeyToBip39(t *testing.T) {
 	randomKey, err := GenerateEncryptionKey()
 	if err != nil {

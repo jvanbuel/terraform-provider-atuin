@@ -76,7 +76,33 @@ func (c *AtuinClient) CreateUser(username, password, email string) (string, erro
 	return s.Session, nil
 }
 
-func (c *AtuinClient) UpdatePassword(username, password string) error {
+func (c *AtuinClient) UpdatePassword(username, password, newpassword string) error {
+	sessionToken, err := c.Login(username, password)
+	if err != nil {
+		return err
+	}
+
+	values := map[string]string{"current_password": password, "new_password": newpassword}
+
+	jsonValue, _ := json.Marshal(values)
+
+	request, err := http.NewRequest("PATCH", c.host+"/account/password", bytes.NewBuffer(jsonValue))
+	if err != nil {
+		return err
+	}
+
+	request.Header.Set("Authorization", "Token "+sessionToken)
+
+	resp, err := c.Do(request)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("error updating password: %s", resp.Body)
+	}
+
 	return nil
 }
 
