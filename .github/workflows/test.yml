@@ -77,7 +77,7 @@ jobs:
           terraform_wrapper: false
       - run: go mod download
       - name: Start Atuin server & run integration tests
-        run:  docker-compose up --abort-on-container-exit
+        run: sudo docker-compose up --abort-on-container-exit
         working-directory: docker-compose
 
 
