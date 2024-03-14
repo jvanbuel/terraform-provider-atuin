@@ -56,7 +56,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     container:
-      image: busybox:latest
+      image: ubuntu:latest
     strategy:
       fail-fast: false
       matrix:
