@@ -54,7 +54,7 @@ jobs:
     name: Terraform Provider Acceptance Tests
     needs: build
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 15   
     strategy:
       fail-fast: false
       matrix:
@@ -84,6 +84,6 @@ jobs:
         shell: bash
       - env:
           TF_ACC: "1"
-          ATUIN_HOST: "http://0.0.0.0:8888"
+          ATUIN_HOST: "docker://atuin:8888"
         run: go test -v -cover ./internal/provider/
         timeout-minutes: 10
