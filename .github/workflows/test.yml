@@ -79,6 +79,9 @@ jobs:
       - name: Start Atuin server
         run: docker compose up -d
         working-directory: docker-compose
+      - name: Sleep for 30 seconds
+        run: sleep 30s
+        shell: bash
       - env:
           TF_ACC: "1"
           ATUIN_HOST: "http://0.0.0.0:8888"
