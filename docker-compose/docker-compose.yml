@@ -4,8 +4,6 @@ services:
     restart: always
     image: ghcr.io/atuinsh/atuin:v18.1.0
     command: server start
-    volumes:
-      - "./config:/config"
     links:
       - postgresql:db
     ports:
