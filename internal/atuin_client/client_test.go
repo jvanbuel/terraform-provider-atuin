@@ -2,13 +2,14 @@ package atuin
 
 import (
 	b64 "encoding/base64"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/tyler-smith/go-bip39"
 )
 
-const TEST_API_ENDPOINT = "http://localhost:8888"
+var TEST_API_ENDPOINT = os.Getenv("ATUIN_HOST")
 
 func TestGenerateKey(t *testing.T) {
 	key, err := GenerateEncryptionKey()
