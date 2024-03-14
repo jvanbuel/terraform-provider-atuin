@@ -79,11 +79,8 @@ jobs:
       - name: Start Atuin server
         run: docker compose up -d
         working-directory: docker-compose
-      - name: Sleep for 30 seconds
-        run: sleep 30s
-        shell: bash
       - env:
           TF_ACC: "1"
-          ATUIN_HOST: "docker://atuin:8888"
+          ATUIN_HOST: "http://atuin:8888"
         run: go test -v -cover ./internal/provider/
         timeout-minutes: 10
