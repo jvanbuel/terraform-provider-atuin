@@ -76,11 +76,10 @@ jobs:
           terraform_version: ${{ matrix.terraform }}
           terraform_wrapper: false
       - run: go mod download
-      - name: Start Atuin server
-        run: docker compose up -d
+      - name: Start Atuin server and run integration tests
+        run: docker compose up --wait -d && go test -v cover ../internal/provider/
         working-directory: docker-compose
-      - env:
+        env:
           TF_ACC: "1"
-          ATUIN_HOST: "http://atuin:8888"
-        run: go test -v -cover ./internal/provider/
-        timeout-minutes: 10
+          ATUIN_HOST: "http://localhost:8888"
+
