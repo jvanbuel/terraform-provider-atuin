@@ -44,13 +44,17 @@ func TestUpdatePassword(t *testing.T) {
 	newPassword := "newpassword"
 	client := NewAtuinClient(TEST_API_ENDPOINT)
 
-	client.CreateUser(username, password, username+"@example.com")
-	err := client.UpdatePassword(username, password, newPassword)
+	_, err := client.CreateUser(username, password, username+"@example.com")
+	if err != nil {
+		t.Errorf("Error creating user: %s", err)
+	}
+
+	err = client.UpdatePassword(username, password, newPassword)
 	if err != nil {
 		t.Errorf("Error updating password: %s", err)
 	}
 
-	client.DeleteUser(username, newPassword)
+	_ = client.DeleteUser(username, newPassword)
 }
 
 func TestConvertKeyToBip39(t *testing.T) {
