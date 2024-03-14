@@ -8,6 +8,8 @@ import (
 	"github.com/tyler-smith/go-bip39"
 )
 
+const TEST_API_ENDPOINT = "http://localhost:8888"
+
 func TestGenerateKey(t *testing.T) {
 	key, err := GenerateEncryptionKey()
 	if err != nil {
@@ -23,7 +25,7 @@ func TestGenerateKey(t *testing.T) {
 func TestCreateAndDeleteUser(t *testing.T) {
 	username := "aW0nd3rfulUs3rname"
 	password := "password"
-	client := NewAtuinClient(API_ENDPOINT)
+	client := NewAtuinClient(TEST_API_ENDPOINT)
 	_, err := client.CreateUser(username, password, username+"@example.com")
 	if err != nil {
 		t.Errorf("Error creating user: %s", err)

@@ -36,3 +36,6 @@ website/vendor
 
 vendor
 main.tf
+database
+config
+
