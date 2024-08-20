@@ -62,7 +62,7 @@ func (c *AtuinClient) CreateUser(username, password, email string) (string, erro
 			return "", fmt.Errorf("unexpected error: %v", resp.Body)
 		}
 
-		return "", fmt.Errorf(e.Reason)
+		return "", fmt.Errorf("%s", e.Reason)
 	}
 
 	defer resp.Body.Close()
@@ -155,7 +155,7 @@ func (c *AtuinClient) Login(username, password string) (string, error) {
 			return "", fmt.Errorf("unexpected error: %v", resp.Body)
 		}
 
-		return "", fmt.Errorf(e.Reason)
+		return "", fmt.Errorf("%s", e.Reason)
 	}
 
 	defer resp.Body.Close()
