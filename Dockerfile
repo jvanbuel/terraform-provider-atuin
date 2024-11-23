@@ -1,4 +1,4 @@
-FROM golang:1.21-alpine
+FROM golang:1.23.3-alpine
 ENV ATUIN_HOST=""
 
 RUN set -ex; \
