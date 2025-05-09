@@ -2,7 +2,7 @@ module terraform-provider-atuin
 
 go 1.23.0
 
-toolchain go1.24.2
+toolchain go1.24.3
 
 require (
 	github.com/hashicorp/terraform-plugin-docs v0.21.0
