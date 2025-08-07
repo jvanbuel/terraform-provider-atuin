@@ -28,3 +28,5 @@ services:
       dockerfile: Dockerfile
     environment:
       ATUIN_HOST: http://atuin:8888
+    depends_on:
+      - postgresql

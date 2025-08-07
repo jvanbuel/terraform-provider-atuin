@@ -1,4 +1,4 @@
-FROM golang:1.24.5-alpine
+FROM golang:1.24.6-alpine
 ENV ATUIN_HOST=""
 
 RUN set -ex; \
@@ -8,4 +8,4 @@ RUN set -ex; \
 WORKDIR /app
 COPY . .
 
-CMD CGO_ENABLED=0 TF_ACC=1 ATUIN_HOST=$ATUIN_HOST go test ./...
+CMD ["sh", "-c", "CGO_ENABLED=0 TF_ACC=1 ATUIN_HOST=$ATUIN_HOST go test ./..."]
