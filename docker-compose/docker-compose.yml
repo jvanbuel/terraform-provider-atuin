@@ -2,7 +2,7 @@ services:
   atuin:
     restart: always
     image: ghcr.io/atuinsh/atuin:latest
-    command: server start
+    command: start
     links:
       - postgresql:db
     ports:
@@ -21,6 +21,7 @@ services:
       POSTGRES_USER: ${ATUIN_DB_USERNAME}
       POSTGRES_PASSWORD: ${ATUIN_DB_PASSWORD}
       POSTGRES_DB: ${ATUIN_DB_NAME}
+      POSTGRES_HOST_AUTH_METHOD: trust
 
   test:
     build:
