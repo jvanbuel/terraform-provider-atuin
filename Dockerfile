@@ -8,4 +8,6 @@ RUN set -ex; \
 WORKDIR /app
 COPY . .
 
+RUN adduser -D -u 1000 appuser && chown -R 1000:1000 /app
+USER 1000
 CMD ["sh", "-c", "CGO_ENABLED=0 TF_ACC=1 ATUIN_HOST=$ATUIN_HOST go test ./..."]
